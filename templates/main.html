@@ -6,5 +6,11 @@
 </head>
 <body>
     <h1>main</h1>
+    {%if user_id%}
+    {{user_id}}<a>님</a> 
+    <button type="button" onclick="location.href='/logout' ">로그 아웃</button> 
+    {%endif%}
+
+    <img src="{{ url_for('video_feed') }}">
 </body>
 </html>

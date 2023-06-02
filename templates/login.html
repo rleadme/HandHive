@@ -1,0 +1,13 @@
+<form action="/login" method="post">
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.id.label }}
+        {{ form.id() }}
+    </div>
+    <div>
+        {{ form.password.label }}
+        {{ form.password() }}
+    </div>
+
+    {{ form.submit() }}
+</form>
