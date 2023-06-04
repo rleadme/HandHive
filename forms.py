@@ -17,3 +17,7 @@ class LoginForm(FlaskForm):
     id = StringField("ID", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField('Login')
+
+class gameForm(FlaskForm):
+    hand = StringField("가위 바위 보", validators=[DataRequired()])
+    submit = SubmitField('결과 확인')

@@ -1,0 +1,12 @@
+<form action="/game" method="post">
+    {{ form.hidden_tag() }}
+    <div>
+        {{com}}<a>!!</a> 
+    </div>
+    <div>
+        {{ form.hand.label }}
+        {{ form.hand() }}
+    </div>
+
+    {{ form.submit() }}
+</form>
