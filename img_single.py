@@ -3,7 +3,7 @@ import mediapipe as mp
 import numpy as np
 
 # image_judge(image_path) : 이미지에 대한 판단
-def image_judge(image_path, model_path):
+def image_judge(image_data, model_path):
     
     # 인식하는 손 최대 개수 = 1
     max_num_hands = 1
@@ -21,7 +21,10 @@ def image_judge(image_path, model_path):
     knn_test=cv2.ml.KNearest_load(model_path)
 
     # 판단할 이미지 불러오기
-    img = cv2.imread(image_path)
+    # img = cv2.imread(image_path)
+
+    img_array = np.frombuffer(image_data, np.uint8) # 바이트 데이터 -> NumPy 배열로 변환
+    img = cv2.imdecode(img_array, cv2.IMREAD_COLOR) # 컬러 이미지로 디코딩. 
 
     # 이미지 전처리
     img = cv2.flip(img, 1)

@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>main</title>
-</head>
-<body>
-    <h1>main</h1>
-    {%if user_id%}
-    {{user_id}}<a>님</a> 
-    <button type="button" onclick="location.href='/logout' ">로그 아웃</button> 
-    {%endif%}
-
-</body>
+<!doctype html>
+<html>
+   <body>
+    <div>
+        {{user_id}}<a>님 안녕하세요!</a> 
+    </div>
+    
+    <div>
+        <button type="button" onclick="location.href='/game' ">게임 시작</button> 
+    </div>
+   </body>
 </html>

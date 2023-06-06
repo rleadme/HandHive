@@ -48,25 +48,9 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
 print("secretKey",app.config["SECRET_KEY"])
 
-# def generate_frames():
-#     camera=cv2.VideoCapture(0)
-
-#     while True:
-#         success, frame = camera.read()
-
-#         if not success:
-#             break
-        
-#         ret, buffer = cv2.imencode('.jpg', frame)
-#         frame = buffer.tobytes()
-
-#         yield (b'--frame\r\n'
-#                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # 프레임 스트리밍
-
-#     camera.release()
 
 @app.route('/', methods=['GET'])
-def main():
+def home():
     if request.method == 'GET':
         user_id=session.get('user_id',None)
         if 'end' in request.args: # 종료하기 버튼 누른 경우
@@ -79,7 +63,8 @@ def main():
                 cur.execute("update members set point=point+(?) WHERE id=(?)",(game_point-100,session['user_id']))
                 con.commit()
                 print("갱신 완료")
-    return render_template('main.html',user_id=user_id)
+
+    return render_template('home.html',user_id=user_id)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -100,6 +85,7 @@ def register():
             msg = "Error"
         
         finally:
+            print(msg)
             con.close()
             return render_template('login.html', msg=msg, form=LoginForm())
     
@@ -140,7 +126,7 @@ def login():
 
         finally:
             con.close()
-            return render_template('result.html', msg=msg, user_id=user_id)
+            return render_template('home.html', user_id=user_id)
         
     return render_template('login.html', form=form)
 
@@ -151,15 +137,10 @@ def logout():
     return redirect('/')
 
 
-# @app.route('/video_feed')
-# def video_feed():
-#     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-# 게임 화면
 @app.route('/game', methods=["GET", "POST"])
 def game():
     form=gameForm()
-    rsp=["가위", "바위", "보"]
+    
     if request.method == 'GET':
         if 'continue' in request.args: # 계속하기 버튼을 누른 경우
             print("계속하기 버튼 누름")
@@ -175,59 +156,61 @@ def game():
              session['game_id']=game_id
              print("INSERT 성공")
              
-        com=random.choice(rsp) # GET 방식일 경우 com 값 랜덤 지정
-        session['com'] = com # session에 저장
-        return render_template('game.html', com=com, form=form)
+        return render_template('upload.html')
     
     elif request.method=='POST':
         try:
-            com=session['com'] # session에 저장된 com 값 사용
-            hand = form.hand.data
+            rsp=["가위", "바위", "보"]
+            com=random.choice(rsp) # com 값 랜덤 지정
+            f=request.files['file']
+            image_data=f.read()
+            hand = image_judge(image_data,'knn_model.xml')
+            print(hand)
             if com==hand:
-                msg="비겼습니다!"
+                msg="draw"
             elif com=="가위":
                 if hand=="바위":
-                    msg="이겼습니다!"
+                    msg="win"
                 else:
-                    msg="졌습니다ㅠㅠ"
+                    msg="lose"
             elif com=="바위":
                 if hand=="가위":
-                    msg="졌습니다ㅠㅠ"
+                    msg="lose"
                 else:
-                    msg="이겼습니다!"
+                    msg="win"
             elif com=="보":
                 if hand=="가위":
-                    msg="이겼습니다!"
+                    msg="win"
                 else:
-                    msg="졌습니다ㅠㅠ"
-
+                    msg="lose"
         except:
             msg="Error"
         finally:
             with sql.connect("database.db") as con:
                 cur=con.cursor()
-            if msg=="이겼습니다!":
+            if msg=="win":
                 cur.execute("update score set game_point=game_point*2 WHERE game_id=(?)",(session['game_id'],))
                 con.commit()
                 print("게임 point x 2 성공")
-            elif msg=="졌습니다ㅠㅠ":
+            elif msg=="lose":
+                user_id=session.get('user_id',None)
                 cur.execute("update score set game_point=0 WHERE game_id=(?)",(session['game_id'],))
                 con.commit()
             return render_template('game_result.html', msg=msg) # 게임 결과 화면으로 이동
-        
+
+
 @app.route('/upload')
 def load_file():
     return render_template('upload.html')
 
-@app.route('/uploader', methods=['GET', 'POST'])
-def upload_file():
-    if request.method == 'POST':
-        f=request.files['file']
-        f.save(f.filename)
-        print(image_judge(f.filename,'knn_model.xml'))
-        return 'file uploaded successfully'
-
-
+# @app.route('/uploader', methods=['GET', 'POST'])
+# def upload_file():
+#     if request.method == 'POST':
+#         f=request.files['file']
+#         image_data=f.read() 
+#         # f.save(f.filename)
+#         print(image_judge(image_data,'knn_model.xml'))
+#         return 'file uploaded successfully'
             
 if __name__ == '__main__':
     app.run(debug=True)
