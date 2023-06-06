@@ -5,6 +5,9 @@ from flask import session
 import os
 import cv2
 import random
+from img_single import image_judge
+
+
 
 # mambers table 생성
 """
@@ -45,22 +48,22 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.urandom(24)
 print("secretKey",app.config["SECRET_KEY"])
 
-def generate_frames():
-    camera=cv2.VideoCapture(0)
+# def generate_frames():
+#     camera=cv2.VideoCapture(0)
 
-    while True:
-        success, frame = camera.read()
+#     while True:
+#         success, frame = camera.read()
 
-        if not success:
-            break
+#         if not success:
+#             break
         
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame = buffer.tobytes()
+#         ret, buffer = cv2.imencode('.jpg', frame)
+#         frame = buffer.tobytes()
 
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # 프레임 스트리밍
+#         yield (b'--frame\r\n'
+#                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')  # 프레임 스트리밍
 
-    camera.release()
+#     camera.release()
 
 @app.route('/', methods=['GET'])
 def main():
@@ -148,9 +151,9 @@ def logout():
     return redirect('/')
 
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/video_feed')
+# def video_feed():
+#     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 # 게임 화면
 @app.route('/game', methods=["GET", "POST"])
@@ -211,6 +214,19 @@ def game():
                 cur.execute("update score set game_point=0 WHERE game_id=(?)",(session['game_id'],))
                 con.commit()
             return render_template('game_result.html', msg=msg) # 게임 결과 화면으로 이동
+        
+@app.route('/upload')
+def load_file():
+    return render_template('upload.html')
+
+@app.route('/uploader', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        f=request.files['file']
+        f.save(f.filename)
+        print(image_judge(f.filename,'knn_model.xml'))
+        return 'file uploaded successfully'
+
 
             
 if __name__ == '__main__':
