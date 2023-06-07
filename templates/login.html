@@ -1,6 +1,11 @@
 <form action="/login" method="post">
     {{ form.hidden_tag() }}
     <div>
+        {% if msg %}
+        {{ msg }}
+        {% endif %}
+    </div>
+    <div>
         {{ form.id.label }}
         {{ form.id() }}
     </div>

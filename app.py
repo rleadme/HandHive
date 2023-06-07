@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, flash, redirect, Response
+from flask import Flask, render_template, request, redirect, Response, jsonify
 from forms import RegistrationForm, LoginForm, gameForm
 import sqlite3 as sql
 from flask import session
@@ -107,6 +107,7 @@ def list():
 @app.route('/login', methods=["GET", "POST"])
 def login():
     form = LoginForm()
+    msg=None
     if request.method=='POST':
         try:
             id = form.id.data
@@ -119,16 +120,19 @@ def login():
                     user_id=user[1]
                     session['user_id'] = user_id
                     msg="Login 성공"
+                    return render_template('home.html', user_id=user_id)
                 else:
+                    user_id=None
                     msg="비밀번호가 일치하지 않습니다."
         except:
             msg="Error"
 
         finally:
             con.close()
-            return render_template('home.html', user_id=user_id)
+            # return render_template('home.html', user_id=user_id)
+            # return render_template('login.html', form=form, msg=msg)
         
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, msg=msg)
 
 # 로그아웃
 @app.route('/logout')
@@ -160,7 +164,7 @@ def game():
     
     elif request.method=='POST':
         try:
-            rsp=["가위", "바위", "보"]
+            rsp=["scissor", "rock", "paper"]
             com=random.choice(rsp) # com 값 랜덤 지정
             f=request.files['file']
             image_data=f.read()
@@ -168,18 +172,18 @@ def game():
             print(hand)
             if com==hand:
                 msg="draw"
-            elif com=="가위":
-                if hand=="바위":
+            elif com=="scissor":
+                if hand=="rock":
                     msg="win"
                 else:
                     msg="lose"
-            elif com=="바위":
-                if hand=="가위":
+            elif com=="rock":
+                if hand=="scissor":
                     msg="lose"
                 else:
                     msg="win"
-            elif com=="보":
-                if hand=="가위":
+            elif com=="paper":
+                if hand=="scissor":
                     msg="win"
                 else:
                     msg="lose"
@@ -196,7 +200,8 @@ def game():
                 user_id=session.get('user_id',None)
                 cur.execute("update score set game_point=0 WHERE game_id=(?)",(session['game_id'],))
                 con.commit()
-            return render_template('game_result.html', msg=msg) # 게임 결과 화면으로 이동
+            # return render_template('game_result.html', msg=msg) # 게임 결과 화면으로 이동
+            return jsonify({"com": com, "result":msg})
 
 
 @app.route('/upload')
