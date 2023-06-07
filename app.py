@@ -166,9 +166,12 @@ def game():
         try:
             rsp=["scissor", "rock", "paper"]
             com=random.choice(rsp) # com 값 랜덤 지정
-            f=request.files['file']
-            image_data=f.read()
-            hand = image_judge(image_data,'knn_model.xml')
+            
+            image_folder = os.environ.get('IMAGE_FOLDER')  # 시스템 환경 변수에서 이미지 폴더 경로 가져오기
+            image_name=request.args.get('image') # front에서 파일명 받음
+            save_path = os.path.join(image_folder, image_name)  # 이미지 폴더 경로와 파일명 결합
+
+            hand = image_judge(save_path,'knn_model.xml')
             print(hand)
             if com==hand:
                 msg="draw"
